@@ -97,6 +97,7 @@ void ScheduleOn(uint8_t id, uint8_t velocity) {
 
     if (noteState) {                                                //if note is ON (note is being played)
       if (lastScheduledState) {                                     //if last scheduled state is ON
+        assert(isPreviousNoteBB == false);                          //if last scheduled state is ON, then the last scheduled note cannot be a BB
         if (lastScheduledAt < millis()) {                           //the last scheduled state has already been executed
           note.scheduleOff(TD - mySettings.DEACTIVATION_DURATION);  //schedule a deactivation just in time for the new activation
           note.scheduleOn(velocity, TD);                            //schedule the activation for the new note normally
@@ -145,6 +146,7 @@ void ScheduleOn(uint8_t id, uint8_t velocity) {
       }
     } else {                                                                                             //if the note is OFF
       if (lastScheduledState) {                                                                          //if last scheduled state is ON
+        assert(isPreviousNoteBB == false); //if last note is ON then it cannot be a bounce back command                                                                        //if last scheduled state is ON
         if (lastScheduledAt < TD - mySettings.ACTIVATION_DURATION - mySettings.DEACTIVATION_DURATION) {  //there is sufficient time to schedule the activation and deactivation
           note.scheduleOff(TD - mySettings.DEACTIVATION_DURATION);                                       //create a JIT deactivation command
           note.scheduleOn(velocity, TD);
