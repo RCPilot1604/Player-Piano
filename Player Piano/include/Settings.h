@@ -8,8 +8,6 @@ private:
   uint8_t MIN_D_PWM; //this is the variable that will store the Min PWM values
   uint8_t volumeScaler = 100; //this is the volume scaler
 public:
-  const char *ssid = "Chua_Family_24";
-  const char *password = "LibNibTruff!4235";
   void setMaxDPWM(uint8_t pwm);
   void setMinDPWM(uint8_t pwm);
   uint8_t getMaxDPWM();
