@@ -49,13 +49,12 @@ public:
   //is implemented but not the actual implementation of these features themselves.
   const int DEACTIVATION_DURATION = 75; //similar to ACTIVATION_DURATION, the time taken for a note to become fully deactivated
   //Does not affect how BounceBack / rescheduling is implemented but instead WHEN these are implemented. 
-  const int BOUNCEBACK_DURATION = 50; //time taken for note to complete a bounce back cycle
-  
+
   const int BB_ON_PWM = 255; //Pulse PWM for BounceBack
   const int BB_STARTUP_DURATION = 20; //Duration of Pulse PWM for BounceBack
   const int BB_VELOCITY_DURATION = 50; //Duration of Velocity for BounceBack
   const int BB_HOLD_DURATION = 0; //Hold Duration for Bounceback (can be 0)
-  const int BB_TOTAL_DURATION = BB_STARTUP_DURATION + BB_VELOCITY_DURATION + BB_HOLD_DURATION;
+  const int BOUNCEBACK_DURATION = BB_STARTUP_DURATION + BB_VELOCITY_DURATION + BB_HOLD_DURATION; //time taken for note to complete a bounce back cycle
   
   const int NOTE_TIMEOUT = 10000; //After x amount of time, any note left on will be auto turned off
   const uint8_t MAX_NOTES = 10; //maximum number of notes that can be played at any point in time

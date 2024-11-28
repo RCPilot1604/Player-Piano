@@ -132,7 +132,7 @@ void ScheduleOn(uint8_t id, uint8_t velocity) {
 
       } else {                                                          //if last scheduled state is OFF
         if(isPreviousNoteBB){ //the previous note is already a bounceback command. 
-          if(lastScheduledAt > TD - mySettings.BB_TOTAL_DURATION){ //there is no time to schedule a new bounceback
+          if(lastScheduledAt > TD - mySettings.BOUNCEBACK_DURATION){ //there is no time to schedule a new bounceback
             ; //do not schedule anything
           } else {
             note.scheduleBB(velocity, lastScheduledAt);
