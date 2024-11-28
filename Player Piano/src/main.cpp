@@ -79,7 +79,8 @@ void ScheduleOn(uint8_t id, uint8_t velocity) {
     bool lastScheduledState = note.getLastScheduledState();
     unsigned long lastScheduledAt = note.getLastScheduledAt();
     unsigned long TD = millis() + mySettings.DELAY_TIME;
-
+    bool isPreviousNoteBB = note.getLastBounceBackState(); //find out if the last scheduled note is a bounceback note
+  
 #ifdef SERIAL_DEBUG_SCHEDULE
     Serial.print(millis());
     Serial.print(" - ScheduleOn: ID - ");
