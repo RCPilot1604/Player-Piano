@@ -27,7 +27,7 @@ public:
   
   //MIN_PWM and MAX_PWM are for mapping the velocity of the notes to PWM for the VELOCITY PHASE. As such the maximum PWM
   //should be calculated based off a reasonable voltage for the solenoid.
-  const uint8_t MIN_PWM = 0;
+  const uint8_t MIN_PWM = 0; //corresponds to 0V
   const uint8_t MAX_PWM = 159; //corresponds to 15V
   
   //This is for scaling the volume between notes. 
@@ -35,26 +35,26 @@ public:
   const uint8_t MIDI_MIN_VELOCITY = 0;
   const uint8_t MIDI_MAX_VELOCITY = 127;
   
-  const int DELAY_TIME = 750; //delay time in ms for the scheduling.
+  const int DELAY_TIME = 200; //delay time in ms for the scheduling.
   //This is the time gap between a command being scheduled and it being executed
   //Essentially this is the lookahead. This value should be set just higher than the activation time + deactivation time 
-  const int STARTUP_DURATION = 5; //time spent on the startup (high current pulse) phase, corresponds to ON_PWM
-  const int VELOCITY_DURATION = 35; //minimum time spent on the velocity (MIDI-dependent) phase.
+  const int STARTUP_DURATION = 10; //time spent on the startup (high current pulse) phase, corresponds to ON_PWM
+  const int VELOCITY_DURATION = 50; //minimum time spent on the velocity (MIDI-dependent) phase.
   //The equation for calculating the total time spent in the velocity phase is: 
   // VELOCITY_DURATION = round(((-25 * midi_vel) / (double)127) + VELOCITY_DURATION)
 
   //derived empirically
-  const int ACTIVATION_DURATION = 100; //the time taken for the note to become fully activated (this can be thought of as the
+  const int ACTIVATION_DURATION = 50; //the time taken for the note to become fully activated (this can be thought of as the
   //actual time it takes for the note to fully depress. Changing this value will affect the CRITERIA for when BounceBack / rescheduling
   //is implemented but not the actual implementation of these features themselves.
-  const int DEACTIVATION_DURATION = 100; //similar to ACTIVATION_DURATION, the time taken for a note to become fully deactivated
+  const int DEACTIVATION_DURATION = 75; //similar to ACTIVATION_DURATION, the time taken for a note to become fully deactivated
   //Does not affect how BounceBack / rescheduling is implemented but instead WHEN these are implemented. 
   const int BOUNCEBACK_DURATION = 50; //time taken for note to complete a bounce back cycle
   
-  const int BB_ON_PWM = 100; //Pulse PWM for BounceBack
-  const int BB_STARTUP_DURATION = 15; //Duration of Pulse PWM for BounceBack
-  const int BB_VELOCITY_DURATION = 25; //Duration of Velocity for BounceBack
-  const int BB_HOLD_DURATION = 10; //Hold Duration for Bounceback (can be 0)
+  const int BB_ON_PWM = 255; //Pulse PWM for BounceBack
+  const int BB_STARTUP_DURATION = 20; //Duration of Pulse PWM for BounceBack
+  const int BB_VELOCITY_DURATION = 50; //Duration of Velocity for BounceBack
+  const int BB_HOLD_DURATION = 0; //Hold Duration for Bounceback (can be 0)
   const int BB_TOTAL_DURATION = BB_STARTUP_DURATION + BB_VELOCITY_DURATION + BB_HOLD_DURATION;
   
   const int NOTE_TIMEOUT = 10000; //After x amount of time, any note left on will be auto turned off
