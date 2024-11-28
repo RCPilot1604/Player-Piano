@@ -21,11 +21,13 @@ void Note::scheduleOn(uint8_t vel, unsigned long TD){
     commandList.push_back(Commands(mappedPwm,TD+mySettings.STARTUP_DURATION));
     commandList.push_back(Commands(mySettings.HOLD_PWM, TD+mySettings.STARTUP_DURATION+velocityDuration));
     setLastScheduledState(true, TD);
+    setLastBounceBackState(false);
   }
 }
 void Note::scheduleOff(unsigned long TD){
   commandList.push_back(Commands(mySettings.MIN_PWM,TD));
   setLastScheduledState(false, TD);
+  setLastBounceBackState(false);
 }
 void Note::scheduleBB(int pwm, unsigned long TD){
   Serial.println("Schedule Bounce Back");
@@ -34,6 +36,7 @@ void Note::scheduleBB(int pwm, unsigned long TD){
   commandList.push_back(Commands(mySettings.HOLD_PWM, TD+mySettings.BB_STARTUP_DURATION+mySettings.BB_VELOCITY_DURATION)); //schedule holding command
   commandList.push_back(Commands(mySettings.getMinDPWM(), TD+mySettings.BB_TOTAL_DURATION)); //immediately shedule a deactivation to bounce back
   setLastScheduledState(false, TD+mySettings.BB_TOTAL_DURATION);
+  setLastBounceBackState(true);
 }
 int Note::getOldPWM(uint8_t index){
   return this->commandList[commandList.size()-index].getPwm(); //index starts from 1 not 0
