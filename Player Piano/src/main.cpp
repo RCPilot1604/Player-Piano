@@ -14,7 +14,7 @@
 Settings mySettings;  //create a settings object
 
 // #define SERIAL_DEBUG_RECEIVED
-// #define SERIAL_DEBUG_SCHEDULE
+#define SERIAL_DEBUG_SCHEDULE
 // #define SERIAL_DEBUG_COMMAND
 // #define SERIAL_DEBUG_NOTECOUNTER
 // #define SERIAL_DEBUG_PCA
@@ -81,19 +81,19 @@ void ScheduleOn(uint8_t id, uint8_t velocity) {
     unsigned long TD = millis() + mySettings.DELAY_TIME;
     bool isPreviousNoteBB = note.getLastBounceBackState(); //find out if the last scheduled note is a bounceback note
   
-#ifdef SERIAL_DEBUG_SCHEDULE
-    Serial.print(millis());
-    Serial.print(" - ScheduleOn: ID - ");
-    Serial.print(id);
-    Serial.print(", Note state - ");
-    Serial.print(noteState);
-    Serial.print(", Last Sched State - ");
-    Serial.print(lastScheduledState);
-    Serial.print(", Last Sched At - ");
-    Serial.print(lastScheduledAt);
-    Serial.print(", calc Vel - ");
-    Serial.println(velocity);
-#endif
+// #ifdef SERIAL_DEBUG_SCHEDULE
+//     Serial.print(millis());
+//     Serial.print(" - ScheduleOn: ID - ");
+//     Serial.print(id);
+//     Serial.print(", Note state - ");
+//     Serial.print(noteState);
+//     Serial.print(", Last Sched State - ");
+//     Serial.print(lastScheduledState);
+//     Serial.print(", Last Sched At - ");
+//     Serial.print(lastScheduledAt);
+//     Serial.print(", calc Vel - ");
+//     Serial.println(velocity);
+// #endif
 
     if (noteState) {                                                //if note is ON (note is being played)
       if (lastScheduledState) {                                     //if last scheduled state is ON
@@ -217,20 +217,20 @@ void ScheduleOff(uint8_t id, uint8_t velocity) {
     unsigned long lastScheduledAt = note.getLastScheduledAt();
     unsigned long TD = millis() + mySettings.DELAY_TIME;
 
-#ifdef SERIAL_DEBUG_SCHEDULE
-    Serial.print(millis());
-    Serial.print(" - ScheduleOff: ID - ");
-    Serial.print(id);
-    Serial.print(", Note state - ");
-    Serial.print(noteState);
-    Serial.print(", Last Sched State - ");
-    Serial.print(lastScheduledState);
-    Serial.print(", Last Sched At - ");
-    Serial.print(lastScheduledAt);
-    Serial.print(", calc Vel - ");
-    Serial.print(velocity);
-    Serial.println();
-#endif
+// #ifdef SERIAL_DEBUG_SCHEDULE
+//     Serial.print(millis());
+//     Serial.print(" - ScheduleOff: ID - ");
+//     Serial.print(id);
+//     Serial.print(", Note state - ");
+//     Serial.print(noteState);
+//     Serial.print(", Last Sched State - ");
+//     Serial.print(lastScheduledState);
+//     Serial.print(", Last Sched At - ");
+//     Serial.print(lastScheduledAt);
+//     Serial.print(", calc Vel - ");
+//     Serial.print(velocity);
+//     Serial.println();
+// #endif
 
     if (noteState) {             //if note is ON (note is being played)
       if (lastScheduledState) {  //if last scheduled state is ON
