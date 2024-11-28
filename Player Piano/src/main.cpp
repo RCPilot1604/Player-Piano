@@ -179,13 +179,29 @@ void ScheduleOn(uint8_t id, uint8_t velocity) {
           }
         }
       } else {                             //the last scheduled state is OFF
+        if (lastScheduledAt < millis()) {  //if the off command has already been executed (i.e there is no further off command scheduled)
 #ifdef SERIAL_DEBUG_SCHEDULE
           Serial.println("ON: NoteState = OFF, LastSched = OFF, last scheduled cmd has already been executed");
 #endif
-          //do nothing, we let the deactivation carry on 
+          //do nothing
+        } else {
+          if (lastScheduledAt > TD - mySettings.DEACTIVATION_DURATION) {                //there is insufficient time for the note to deactivate
+            int oldPwm = note.getOldPWM(3);                                             //we save out the old PWM value before we delete it
+            note.eraseCommands(4);                                                      //delete the latest deactivation command AND the activation command
+            note.scheduleBB(oldPwm, lastScheduledAt - mySettings.ACTIVATION_DURATION);  //schedule a bounceback to replace the initial activation
+#ifdef SERIAL_DEBUG_SCHEDULE
+            Serial.println("ON: NoteState = OFF, LastSched = OFF, act+deact command scheduled, no time for note to deactivate");
+#endif
+          } else {
+#ifdef SERIAL_DEBUG_SCHEDULE
+            Serial.println("ON: NoteState = OFF, LastSched = OFF, act+deact command scheduled, sufficient time for note to deactivate");
+#endif
+          }
+        }
+        note.scheduleOn(velocity, TD);
       }
     }
-  } else { //Note is not in range
+  } else {
 #ifdef SERIAL_DEBUG_SCHEDULE
     Serial.println("Note is not in range, no schedule!");
 #endif
