@@ -102,7 +102,7 @@ void ScheduleOn(uint8_t id, uint8_t velocity) {
 #ifdef SERIAL_DEBUG_SCHEDULE
           Serial.println("ON: NoteState = ON, LastSched = ON, lastSched command has been executed");
 #endif
-        } else if (lastScheduledAt < TD - mySettings.DEACTIVATION_DURATION - mySettings.ACTIVATION_DURATION) {
+        } else if (lastScheduledAt < TD - (mySettings.ACTIVATION_DURATION + mySettings.DEACTIVATION_DURATION)) {
           //there is sufficient time for the note to activate and deactivate
           note.scheduleOff(TD - mySettings.DEACTIVATION_DURATION);  //schedule a deactivation just in time for the new activation
           note.scheduleOn(velocity, TD);                            //schedule the activation for the new note normally
