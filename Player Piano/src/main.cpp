@@ -131,21 +131,29 @@ void ScheduleOn(uint8_t id, uint8_t velocity) {
         }
 
       } else {                                                          //if last scheduled state is OFF
-        if (lastScheduledAt > TD - mySettings.DEACTIVATION_DURATION) {  //if there is insufficient time for the note to deactivate before the new note
-          note.eraseCommands(1);                                        //delete the latest deactivation command
-          note.scheduleOff(TD - mySettings.DEACTIVATION_DURATION);      //bring forward the deactivation JIT for the new note by creating a new deactivation command
-#ifdef SERIAL_DEBUG_SCHEDULE
-          Serial.println("ON: NoteState = ON, LastSched = OFF, no time for deact");
-#endif
-        } else {
-#ifdef SERIAL_DEBUG_SCHEDULE
-          Serial.println("ON: NoteState = ON, LastSched = OFF, sufficient time for deact");
-#endif
-        }
-        note.scheduleOn(velocity, TD);  //schedule the activation for the new note normally
+        if(isPreviousNoteBB){ //the previous note is already a bounceback command. 
+          if(lastScheduledAt > TD - mySettings.BB_TOTAL_DURATION){ //there is no time to schedule a new bounceback
+            ; //do not schedule anything
+          } else {
+            note.scheduleBB(velocity, lastScheduledAt);
+          }
+        } else { //previous note is not a bounceback command
+          if (lastScheduledAt > TD - mySettings.DEACTIVATION_DURATION) {  //if there is insufficient time for the note to deactivate before the new note
+            note.eraseCommands(1);                                        //delete the latest deactivation command
+            note.scheduleOff(TD - mySettings.DEACTIVATION_DURATION);      //bring forward the deactivation JIT for the new note by creating a new deactivation command
+  #ifdef SERIAL_DEBUG_SCHEDULE
+            Serial.println("ON: NoteState = ON, LastSched = OFF, no time for deact");
+  #endif
+          } else {
+  #ifdef SERIAL_DEBUG_SCHEDULE
+            Serial.println("ON: NoteState = ON, LastSched = OFF, sufficient time for deact");
+  #endif
+          }
+          note.scheduleOn(velocity, TD);  //schedule the activation for the new note normally
+        } 
       }
-    } else {                                                                                             //if the note is OFF
-      if (lastScheduledState) {                                                                          //if last scheduled state is ON
+    } else { //if the note to be scheduled is OFF
+      if (lastScheduledState) { 
         assert(isPreviousNoteBB == false); //if last note is ON then it cannot be a bounce back command                                                                        //if last scheduled state is ON
         if (lastScheduledAt < TD - mySettings.ACTIVATION_DURATION - mySettings.DEACTIVATION_DURATION) {  //there is sufficient time to schedule the activation and deactivation
           note.scheduleOff(TD - mySettings.DEACTIVATION_DURATION);                                       //create a JIT deactivation command
