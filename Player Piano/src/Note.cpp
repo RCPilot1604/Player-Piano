@@ -17,22 +17,22 @@ void Note::scheduleOn(uint8_t vel, unsigned long TD){
     uint8_t scaledVel = calculateVelocity(vel);
     int velocityDuration = round(((-25 * scaledVel) / (double)127) + mySettings.VELOCITY_DURATION); //the minimum delay is VELOCITY_DURATION - 25 
     int mappedPwm = calculatePWM(scaledVel);
-    commandList.push_back(Commands(mySettings.ON_PWM, TD));
-    commandList.push_back(Commands(mappedPwm,TD+mySettings.STARTUP_DURATION));
-    commandList.push_back(Commands(mySettings.HOLD_PWM, TD+mySettings.STARTUP_DURATION+velocityDuration));
+    commandList.push_back(Commands(mySettings.ON_PWM, TD, false));
+    commandList.push_back(Commands(mappedPwm,TD+mySettings.STARTUP_DURATION, false));
+    commandList.push_back(Commands(mySettings.HOLD_PWM, TD+mySettings.STARTUP_DURATION+velocityDuration, false));
     setLastScheduledState(true, TD);
   }
 }
 void Note::scheduleOff(unsigned long TD){
-  commandList.push_back(Commands(mySettings.MIN_PWM,TD));
+  commandList.push_back(Commands(mySettings.MIN_PWM,TD, false));
   setLastScheduledState(false, TD);
 }
 void Note::scheduleBB(int pwm, unsigned long TD){
   Serial.println("Schedule Bounce Back");
-  commandList.push_back(Commands(mySettings.BB_ON_PWM, TD)); //schedule the command for high current rush
-  commandList.push_back(Commands(pwm, TD+mySettings.BB_STARTUP_DURATION)); //schedule the command for velocity stroke
-  commandList.push_back(Commands(mySettings.HOLD_PWM, TD+mySettings.BB_STARTUP_DURATION+mySettings.BB_VELOCITY_DURATION)); //schedule holding command
-  commandList.push_back(Commands(mySettings.getMinDPWM(), TD+mySettings.BB_TOTAL_DURATION)); //immediately shedule a deactivation to bounce back
+  commandList.push_back(Commands(mySettings.BB_ON_PWM, TD, true)); //schedule the command for high current rush
+  commandList.push_back(Commands(pwm, TD+mySettings.BB_STARTUP_DURATION, true)); //schedule the command for velocity stroke
+  commandList.push_back(Commands(mySettings.HOLD_PWM, TD+mySettings.BB_STARTUP_DURATION+mySettings.BB_VELOCITY_DURATION, true)); //schedule holding command
+  commandList.push_back(Commands(mySettings.getMinDPWM(), TD+mySettings.BB_TOTAL_DURATION, true)); //immediately shedule a deactivation to bounce back
   setLastScheduledState(false, TD+mySettings.BB_TOTAL_DURATION);
 }
 int Note::getOldPWM(uint8_t index){
@@ -64,8 +64,12 @@ void Note::setNoteState(bool state){
 boolean Note::getNoteState(){
   return this->noteState;
 }
-
-
+boolean Note::getLastBounceBackState(){
+  return this->isLastScheduledBB;
+}
+void Note::setLastBounceBackState(bool state){
+  this->isLastScheduledBB = state;
+}
 unsigned long Note::getLastScheduledAt(){
   return this->lastScheduledAt;
 }
