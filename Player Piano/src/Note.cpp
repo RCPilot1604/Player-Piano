@@ -34,8 +34,8 @@ void Note::scheduleBB(int pwm, unsigned long TD){
   commandList.push_back(Commands(mySettings.BB_ON_PWM, TD)); //schedule the command for high current rush
   commandList.push_back(Commands(pwm, TD+mySettings.BB_STARTUP_DURATION)); //schedule the command for velocity stroke
   commandList.push_back(Commands(mySettings.HOLD_PWM, TD+mySettings.BB_STARTUP_DURATION+mySettings.BB_VELOCITY_DURATION)); //schedule holding command
-  commandList.push_back(Commands(mySettings.getMinDPWM(), TD+mySettings.BB_TOTAL_DURATION)); //immediately shedule a deactivation to bounce back
-  setLastScheduledState(false, TD+mySettings.BB_TOTAL_DURATION);
+  commandList.push_back(Commands(mySettings.getMinDPWM(), TD+mySettings.BOUNCEBACK_DURATION)); //immediately shedule a deactivation to bounce back
+  setLastScheduledState(false, TD+mySettings.BOUNCEBACK_DURATION);
   setLastBounceBackState(true);
 }
 int Note::getOldPWM(uint8_t index){
