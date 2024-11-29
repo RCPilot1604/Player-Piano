@@ -171,7 +171,7 @@ void ScheduleOn(uint8_t id, uint8_t velocity) {
             //we go ahead and schedule a bounceback
             int oldPwm = note.getOldPWM(2);            //we save out the old PWM value before we delete it
             note.eraseCommands(3);                     //delete the latest activation command (delete the last 3 -> Surge, Velocity, Holding)
-            note.scheduleBB(oldPwm, lastScheduledAt);  //schedule a bounceback command to play the note quickly at lastScheduledAt
+            note.scheduleBB(oldPwm, note.getTD(3));   //schedule a bounceback to replace the initial activation
             note.scheduleOn(velocity, TD);
 #ifdef SERIAL_DEBUG_SCHEDULE
             Serial.println("ON: NoteState = OFF, LastSched = ON, sufficient time to schedule a bounceback");
