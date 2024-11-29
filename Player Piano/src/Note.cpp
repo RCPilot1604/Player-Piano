@@ -4,13 +4,16 @@ std::vector<Commands> &Note::returnCommands(){
   return this->commandList;
 }
 
-void Note::eraseCommands(uint8_t index){
+unsigned long Note::eraseCommands(uint8_t index){
   auto vend = commandList.rend();
+  unsigned long td = 0;
   for(auto it = commandList.rbegin(); it != vend; it++){
+    td = it->getRunAt();
     commandList.erase(std::next(it).base());
     index--;
     if(index==0) break;
   }
+  return td;
 }
 void Note::scheduleOn(uint8_t vel, unsigned long TD){
   if(vel > mySettings.MIDI_MIN_VELOCITY){ //velocity has to be larger than the MIN_VELOCITY
