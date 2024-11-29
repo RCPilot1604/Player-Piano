@@ -30,7 +30,7 @@ void Note::scheduleOff(unsigned long TD){
   setLastBounceBackState(false);
 }
 void Note::scheduleBB(int pwm, unsigned long TD){
-  Serial.println("Schedule Bounce Back");
+  //Serial.println("Schedule Bounce Back");
   commandList.push_back(Commands(mySettings.BB_ON_PWM, TD)); //schedule the command for high current rush
   commandList.push_back(Commands(pwm, TD+mySettings.BB_STARTUP_DURATION)); //schedule the command for velocity stroke
   commandList.push_back(Commands(mySettings.HOLD_PWM, TD+mySettings.BB_STARTUP_DURATION+mySettings.BB_VELOCITY_DURATION)); //schedule holding command
