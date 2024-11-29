@@ -52,7 +52,7 @@ public:
 
   const int BB_ON_PWM = 255; //Pulse PWM for BounceBack
   const int BB_STARTUP_DURATION = 20; //Duration of Pulse PWM for BounceBack
-  const int BB_VELOCITY_DURATION = 50; //Duration of Velocity for BounceBack
+  const int BB_VELOCITY_DURATION = 10; //Duration of Velocity for BounceBack
   const int BB_HOLD_DURATION = 0; //Hold Duration for Bounceback (can be 0)
   const int BOUNCEBACK_DURATION = BB_STARTUP_DURATION + BB_VELOCITY_DURATION + BB_HOLD_DURATION; //time taken for note to complete a bounce back cycle
   
