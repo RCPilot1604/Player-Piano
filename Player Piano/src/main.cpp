@@ -14,7 +14,7 @@
 Settings mySettings;  //create a settings object
 
 // #define SERIAL_DEBUG_RECEIVED
-// #define SERIAL_DEBUG_SCHEDULE
+//#define SERIAL_DEBUG_SCHEDULE
 // #define SERIAL_DEBUG_COMMAND
 // #define SERIAL_DEBUG_NOTECOUNTER
 // #define SERIAL_DEBUG_PCA
@@ -79,71 +79,91 @@ void ScheduleOn(uint8_t id, uint8_t velocity) {
     bool lastScheduledState = note.getLastScheduledState();
     unsigned long lastScheduledAt = note.getLastScheduledAt();
     unsigned long TD = millis() + mySettings.DELAY_TIME;
-
-#ifdef SERIAL_DEBUG_SCHEDULE
-    Serial.print(millis());
-    Serial.print(" - ScheduleOn: ID - ");
-    Serial.print(id);
-    Serial.print(", Note state - ");
-    Serial.print(noteState);
-    Serial.print(", Last Sched State - ");
-    Serial.print(lastScheduledState);
-    Serial.print(", Last Sched At - ");
-    Serial.print(lastScheduledAt);
-    Serial.print(", calc Vel - ");
-    Serial.println(velocity);
-#endif
+    bool isPreviousNoteBB = note.getLastBounceBackState(); //find out if the last scheduled note is a bounceback note
+  
+// #ifdef SERIAL_DEBUG_SCHEDULE
+//     Serial.print(millis());
+//     Serial.print(" - ScheduleOn: ID - ");
+//     Serial.print(id);
+//     Serial.print(", Note state - ");
+//     Serial.print(noteState);
+//     Serial.print(", Last Sched State - ");
+//     Serial.print(lastScheduledState);
+//     Serial.print(", Last Sched At - ");
+//     Serial.print(lastScheduledAt);
+//     Serial.print(", calc Vel - ");
+//     Serial.println(velocity);
+// #endif
 
     if (noteState) {                                                //if note is ON (note is being played)
       if (lastScheduledState) {                                     //if last scheduled state is ON
+        assert(isPreviousNoteBB == false);                          //if last scheduled state is ON, then the last scheduled note cannot be a BB
         if (lastScheduledAt < millis()) {                           //the last scheduled state has already been executed
           note.scheduleOff(TD - mySettings.DEACTIVATION_DURATION);  //schedule a deactivation just in time for the new activation
           note.scheduleOn(velocity, TD);                            //schedule the activation for the new note normally
 #ifdef SERIAL_DEBUG_SCHEDULE
           Serial.println("ON: NoteState = ON, LastSched = ON, lastSched command has been executed");
 #endif
-        } else if (lastScheduledAt < TD - mySettings.DEACTIVATION_DURATION - mySettings.ACTIVATION_DURATION) {
-          //there is sufficient time for the note to activate and deactivate
-          note.scheduleOff(TD - mySettings.DEACTIVATION_DURATION);  //schedule a deactivation just in time for the new activation
-          note.scheduleOn(velocity, TD);                            //schedule the activation for the new note normally
-#ifdef SERIAL_DEBUG_SCHEDULE
-          Serial.println("ON: NoteState = ON, LastSched = ON, sufficient time for note to act and deact");
-#endif
-        } else {
-          //there is insufficient time for note to activate and deactivate
-          if (lastScheduledAt < TD - mySettings.BOUNCEBACK_DURATION) {
-            //there is sufficient time for a bounceback
-            int oldPwm = note.getOldPWM(2);  //get the old activation PWM; note that we substract 2 because the velocity phase is 2nd last command
-            note.eraseCommands(3);           //erase the activation command
-            note.scheduleBB(oldPwm, lastScheduledAt);
-            note.scheduleOn(velocity, TD);
-#ifdef SERIAL_DEBUG_SCHEDULE
-            Serial.println("ON: NoteState = ON, LastSched = ON, sufficient time for bounceback");
-#endif
-          } else {
-//do nothing, let the original activation carry on
-#ifdef SERIAL_DEBUG_SCHEDULE
-            Serial.println("ON: NoteState = ON, LastSched = ON, no time for bounceback");
-#endif
+          } else { //note has not been executed
+            if(!isPreviousNoteBB){
+              if (lastScheduledAt < TD - (mySettings.ACTIVATION_DURATION + mySettings.DEACTIVATION_DURATION)) {
+              //there is sufficient time for the note to activate and deactivate
+              note.scheduleOff(TD - mySettings.DEACTIVATION_DURATION);  //schedule a deactivation just in time for the new activation
+              note.scheduleOn(velocity, TD);                            //schedule the activation for the new note normally
+    #ifdef SERIAL_DEBUG_SCHEDULE
+              Serial.println("ON: NoteState = ON, LastSched = ON, sufficient time for note to act and deact");
+    #endif
+            } else {
+              //there is insufficient time for note to activate and deactivate
+              if (lastScheduledAt < TD - mySettings.BOUNCEBACK_DURATION) {
+                //there is sufficient time for a bounceback
+                int oldPwm = note.getOldPWM(2);  //get the old activation PWM; note that we substract 2 because the velocity phase is 2nd last command
+                unsigned long oldTD = note.eraseCommands(3);           //erase the activation command
+                note.scheduleBB(oldPwm, oldTD); //get the initial time of the activation command and schedule BB at that time
+                note.scheduleOn(velocity, TD);
+    #ifdef SERIAL_DEBUG_SCHEDULE
+                Serial.println("ON: NoteState = ON, LastSched = ON, sufficient time for bounceback");
+    #endif
+              } else {
+    //do nothing, let the original activation carry on
+    #ifdef SERIAL_DEBUG_SCHEDULE
+                Serial.println("ON: NoteState = ON, LastSched = ON, no time for bounceback");
+    #endif
+              }
+            }
+          } else { //previous note is a Bounceback
+            if(lastScheduledAt > TD - mySettings.BOUNCEBACK_DURATION){ //there is no time to schedule a new bounceback
+              ; //do nothing
+            } else {
+              note.scheduleBB(velocity, TD); //schedule another bounceback
+            }
           }
         }
-
       } else {                                                          //if last scheduled state is OFF
-        if (lastScheduledAt > TD - mySettings.DEACTIVATION_DURATION) {  //if there is insufficient time for the note to deactivate before the new note
-          note.eraseCommands(1);                                        //delete the latest deactivation command
-          note.scheduleOff(TD - mySettings.DEACTIVATION_DURATION);      //bring forward the deactivation JIT for the new note by creating a new deactivation command
-#ifdef SERIAL_DEBUG_SCHEDULE
-          Serial.println("ON: NoteState = ON, LastSched = OFF, no time for deact");
-#endif
-        } else {
-#ifdef SERIAL_DEBUG_SCHEDULE
-          Serial.println("ON: NoteState = ON, LastSched = OFF, sufficient time for deact");
-#endif
-        }
-        note.scheduleOn(velocity, TD);  //schedule the activation for the new note normally
+        if(isPreviousNoteBB){ //the previous note is already a bounceback command. 
+          if(lastScheduledAt > TD - mySettings.BOUNCEBACK_DURATION){ //there is no time to schedule a new bounceback
+            ; //do not schedule anything
+          } else {
+            note.scheduleBB(velocity, TD);
+          }
+        } else { //previous note is not a bounceback command
+          if (lastScheduledAt > TD - mySettings.DEACTIVATION_DURATION) {  //if there is insufficient time for the note to deactivate before the new note
+            note.eraseCommands(1);                                        //delete the latest deactivation command
+            note.scheduleOff(TD - mySettings.DEACTIVATION_DURATION);      //bring forward the deactivation JIT for the new note by creating a new deactivation command
+  #ifdef SERIAL_DEBUG_SCHEDULE
+            Serial.println("ON: NoteState = ON, LastSched = OFF, no time for deact");
+  #endif
+          } else {
+  #ifdef SERIAL_DEBUG_SCHEDULE
+            Serial.println("ON: NoteState = ON, LastSched = OFF, sufficient time for deact");
+  #endif
+          }
+          note.scheduleOn(velocity, TD);  //schedule the activation for the new note normally
+        } 
       }
-    } else {                                                                                             //if the note is OFF
-      if (lastScheduledState) {                                                                          //if last scheduled state is ON
+    } else { //if the note to be scheduled is OFF
+      if (lastScheduledState) { 
+        assert(isPreviousNoteBB == false); //if last note is ON then it cannot be a bounce back command                                                                        //if last scheduled state is ON
         if (lastScheduledAt < TD - mySettings.ACTIVATION_DURATION - mySettings.DEACTIVATION_DURATION) {  //there is sufficient time to schedule the activation and deactivation
           note.scheduleOff(TD - mySettings.DEACTIVATION_DURATION);                                       //create a JIT deactivation command
           note.scheduleOn(velocity, TD);
@@ -159,8 +179,8 @@ void ScheduleOn(uint8_t id, uint8_t velocity) {
           } else {  //there is sufficient time to schedule a bounceback
             //we go ahead and schedule a bounceback
             int oldPwm = note.getOldPWM(2);            //we save out the old PWM value before we delete it
-            note.eraseCommands(3);                     //delete the latest activation command (delete the last 3 -> Surge, Velocity, Holding)
-            note.scheduleBB(oldPwm, lastScheduledAt);  //schedule a bounceback command to play the note quickly at lastScheduledAt
+            unsigned long oldTD = note.eraseCommands(3);                     //delete the latest activation command (delete the last 3 -> Surge, Velocity, Holding)
+            note.scheduleBB(oldPwm, oldTD);   //schedule a bounceback to replace the initial activation
             note.scheduleOn(velocity, TD);
 #ifdef SERIAL_DEBUG_SCHEDULE
             Serial.println("ON: NoteState = OFF, LastSched = ON, sufficient time to schedule a bounceback");
@@ -172,19 +192,33 @@ void ScheduleOn(uint8_t id, uint8_t velocity) {
 #ifdef SERIAL_DEBUG_SCHEDULE
           Serial.println("ON: NoteState = OFF, LastSched = OFF, last scheduled cmd has already been executed");
 #endif
-          //do nothing
-        } else {
-          if (lastScheduledAt > TD - mySettings.DEACTIVATION_DURATION) {                //there is insufficient time for the note to deactivate
-            int oldPwm = note.getOldPWM(3);                                             //we save out the old PWM value before we delete it
-            note.eraseCommands(4);                                                      //delete the latest deactivation command AND the activation command
-            note.scheduleBB(oldPwm, lastScheduledAt - mySettings.ACTIVATION_DURATION);  //schedule a bounceback to replace the initial activation
+          note.scheduleOn(velocity, TD);  //schedule the activation normally
+        } else { //if the off command has not already been executed
+          if(!isPreviousNoteBB){ //if the previous note is not a bounceback command
+            if (lastScheduledAt > TD - mySettings.DEACTIVATION_DURATION) {                //there is insufficient time for the note to deactivate
+              int oldPwm = note.getOldPWM(3);                                             //we save out the old PWM value before we delete it
+              unsigned long oldTD = note.eraseCommands(4);                                                      //delete the latest deactivation command AND the activation command
+              note.scheduleBB(oldPwm, oldTD);  //schedule a bounceback to replace the initial activation
+  #ifdef SERIAL_DEBUG_SCHEDULE
+              Serial.println("ON: NoteState = OFF, LastSched = OFF, act+deact command scheduled, no time for note to deactivate");
+  #endif
+            } else {
+  #ifdef SERIAL_DEBUG_SCHEDULE
+              Serial.println("ON: NoteState = OFF, LastSched = OFF, act+deact command scheduled, sufficient time for note to deactivate");
+  #endif
+            }
+          } else { //if the previous note is a bounceback command
+            if(lastScheduledAt > TD - mySettings.BOUNCEBACK_DURATION){ //bounceback will not finish in time
+              ; //do not schedule anything
 #ifdef SERIAL_DEBUG_SCHEDULE
-            Serial.println("ON: NoteState = OFF, LastSched = OFF, act+deact command scheduled, no time for note to deactivate");
+              Serial.println("ON: NoteState = OFF, LastSched = OFF, bounceback will not finish in time");
 #endif
-          } else {
+            } else {
 #ifdef SERIAL_DEBUG_SCHEDULE
-            Serial.println("ON: NoteState = OFF, LastSched = OFF, act+deact command scheduled, sufficient time for note to deactivate");
+              Serial.println("ON: NoteState = OFF, LastSched = OFF, bounceback will finish in time, schedule normally");
 #endif
+              note.scheduleOn(velocity, TD);
+            }
           }
         }
         note.scheduleOn(velocity, TD);
@@ -206,20 +240,20 @@ void ScheduleOff(uint8_t id, uint8_t velocity) {
     unsigned long lastScheduledAt = note.getLastScheduledAt();
     unsigned long TD = millis() + mySettings.DELAY_TIME;
 
-#ifdef SERIAL_DEBUG_SCHEDULE
-    Serial.print(millis());
-    Serial.print(" - ScheduleOff: ID - ");
-    Serial.print(id);
-    Serial.print(", Note state - ");
-    Serial.print(noteState);
-    Serial.print(", Last Sched State - ");
-    Serial.print(lastScheduledState);
-    Serial.print(", Last Sched At - ");
-    Serial.print(lastScheduledAt);
-    Serial.print(", calc Vel - ");
-    Serial.print(velocity);
-    Serial.println();
-#endif
+// #ifdef SERIAL_DEBUG_SCHEDULE
+//     Serial.print(millis());
+//     Serial.print(" - ScheduleOff: ID - ");
+//     Serial.print(id);
+//     Serial.print(", Note state - ");
+//     Serial.print(noteState);
+//     Serial.print(", Last Sched State - ");
+//     Serial.print(lastScheduledState);
+//     Serial.print(", Last Sched At - ");
+//     Serial.print(lastScheduledAt);
+//     Serial.print(", calc Vel - ");
+//     Serial.print(velocity);
+//     Serial.println();
+// #endif
 
     if (noteState) {             //if note is ON (note is being played)
       if (lastScheduledState) {  //if last scheduled state is ON
@@ -235,8 +269,8 @@ void ScheduleOff(uint8_t id, uint8_t velocity) {
 #endif
         } else {
           int oldPwm = note.getOldPWM(2);  //we save out the old PWM value before we delete it
-          note.eraseCommands(3);
-          note.scheduleBB(oldPwm, lastScheduledAt - mySettings.ACTIVATION_DURATION);  //schedule a bounceback to replace the initial activation
+          unsigned long oldTD = note.eraseCommands(3);
+          note.scheduleBB(oldPwm, oldTD);  //schedule a bounceback to replace the initial activation
 #ifdef SERIAL_DEBUG_SCHEDULE
           Serial.println("OFF: NoteState = ON, LastSched = ON, sufficient time for bounceback");
 #endif
@@ -258,8 +292,8 @@ void ScheduleOff(uint8_t id, uint8_t velocity) {
         } else {                                                        //there is insufficient time to schedule the activation
           if (lastScheduledAt < TD - mySettings.BOUNCEBACK_DURATION) {  //if there is sufficient time to schedule a bounceback
             int oldPwm = note.getOldPWM(2);                             //we save out the oldPwm value from the activation command before we delete it
-            note.eraseCommands(3);                                      //delete the latest activation command
-            note.scheduleBB(oldPwm, lastScheduledAt);                   //schedule a bounceback command to play the note quickly
+            unsigned long oldTD = note.eraseCommands(3);                                      //delete the latest activation command
+            note.scheduleBB(oldPwm, oldTD);                   //schedule a bounceback command to play the note quickly
 #ifdef SERIAL_DEBUG_SCHEDULE
             Serial.println("OFF: NoteState = OFF, LastSched = ON, sufficient time for bounceback");
 #endif
