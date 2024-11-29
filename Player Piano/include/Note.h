@@ -19,10 +19,11 @@ class Note{
     bool noteState;
     bool lastScheduledState; //the state of the last scheduled note (ON/OFF)
     unsigned long lastScheduledAt; //The timestamp of when a note was last scheduled
+    bool isLastScheduledBB; 
     
   public:
     Note(Settings &mySettings, uint8_t midiId, uint8_t maxVelocity, uint8_t minVelocity) 
-    : mySettings(mySettings), midiId(midiId), maxVelocity(maxVelocity), minVelocity(minVelocity), noteState(false), lastScheduledState(false), lastScheduledAt(millis()) {}
+    : mySettings(mySettings), midiId(midiId), maxVelocity(maxVelocity), minVelocity(minVelocity), noteState(false), lastScheduledState(false), lastScheduledAt(millis()), isLastScheduledBB(false) {}
 
     std::vector<Commands> &returnCommands();
     
@@ -30,11 +31,13 @@ class Note{
     void scheduleOff(unsigned long TD);
     void scheduleBB(int pwm, unsigned long TD);
     int getOldPWM(uint8_t index);
-    
-    void eraseCommands(uint8_t index);
+    unsigned long getTD(uint8_t index);
+    unsigned long eraseCommands(uint8_t index);
     
     void setNoteState(bool state);
     bool getNoteState();
+    bool getLastBounceBackState();
+    void setLastBounceBackState(bool state);
     
     void setLastScheduledState(bool state, unsigned long timenow);
     bool getLastScheduledState();
