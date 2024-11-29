@@ -28,7 +28,7 @@ public:
   //MIN_PWM and MAX_PWM are for mapping the velocity of the notes to PWM for the VELOCITY PHASE. As such the maximum PWM
   //should be calculated based off a reasonable voltage for the solenoid.
   const uint8_t MIN_PWM = 0; //corresponds to 0V
-  const uint8_t MAX_PWM = 159; //corresponds to 15V
+  const uint8_t MAX_PWM = 140; //corresponds to 13V
   
   //This is for scaling the volume between notes. 
   //Do not use these variables to limit voltage as this is already done using MAX_PWM. MIDI_MAX_VELOCITY will correspond to MAX_PWM
