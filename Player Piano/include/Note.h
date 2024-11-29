@@ -31,7 +31,7 @@ class Note{
     void scheduleOff(unsigned long TD);
     void scheduleBB(int pwm, unsigned long TD);
     int getOldPWM(uint8_t index);
-    
+    unsigned long getTD(uint8_t index);
     void eraseCommands(uint8_t index);
     
     void setNoteState(bool state);
