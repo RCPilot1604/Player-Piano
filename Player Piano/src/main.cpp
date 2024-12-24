@@ -1,7 +1,8 @@
 #include <Arduino.h>
 
-#include <BLEMIDI_Transport.h>
-#include <hardware/BLEMIDI_ESP32_NimBLE.h>
+//#include <BLEMIDI_Transport.h>
+//#include <hardware/BLEMIDI_ESP32_NimBLE.h>
+#include <WiFi.h>
 
 #include <algorithm>
 #include <vector>
@@ -10,6 +11,8 @@
 #include "Note.h"
 #include "Display.h"
 #include "Settings.h"
+#include <WebSocketsClient.h>
+#include <ArduinoSocketIOClient.h>
 
 Settings mySettings;  //create a settings object
 
@@ -53,7 +56,7 @@ Settings mySettings;  //create a settings object
   #endif
 #endif
 
-BLEMIDI_CREATE_INSTANCE("Player Piano", MIDI)
+//BLEMIDI_CREATE_INSTANCE("Player Piano", MIDI)
 
 std::vector<Note> notes;  //create a vector of type Note object. This stores the STATE OF INDIVIDUAL NOTES
 
@@ -376,13 +379,6 @@ void setup() {
   ESP_REG(0x3FF49028) = (uint32_t)0x2E00;
   digitalWrite(mySettings.SOLENOID_ON_PIN, LOW);
 
-  MIDI.begin(MIDI_CHANNEL_OMNI);
-
-  BLEMIDI.setHandleConnected(OnConnected);
-  BLEMIDI.setHandleDisconnected(OnDisconnected);
-  MIDI.setHandleNoteOn(OnNoteOn);
-  MIDI.setHandleNoteOff(OnNoteOff);
-
 #ifdef PCA_CONNECTED
   #ifdef BOARD_ONE
     board_one.begin(PCA9635_MODE1_NONE, PCA9635_MODE2_TOTEMPOLE);
@@ -475,7 +471,7 @@ void setup() {
 }
 void loop() {
   // put your main code here, to run repeatedly:
-  MIDI.read();
+
   counter = 0;                                              //reset the counter
   for (auto it = notes.begin(); it != notes.end(); it++) {  //iterate through the vector of notes
     //declare variables we will be using
