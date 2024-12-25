@@ -11,16 +11,35 @@
 #include "Note.h"
 #include "Display.h"
 #include "Settings.h"
+#include <WiFi.h>
 #include <WebSocketsClient.h>
-#include <ArduinoSocketIOClient.h>
+#include <SocketIOclient.h>
 
 Settings mySettings;  //create a settings object
+
+/// WIFI Settings ///
+const char* ssid     = "***REMOVED***";
+const char* password = "***REMOVED***";
+/// Socket.IO Settings ///
+char host[] = "192.168.0.226"; // Socket.IO Server Address
+int port = 1234; // Socket.IO Port Address
+char path[] = "/socket.io/?EIO=4"; // Socket.IO Base Path
+bool useSSL = false; // Use SSL Authentication
+// const char * sslFingerprint = "";  // SSL Certificate Fingerprint
+// bool useAuth = false; // use Socket.IO Authentication
+// const char * serverUsername = "socketIOUsername";
+// const char * serverPassword = "socketIOPassword";
+
+SocketIOclient webSocket;
+WiFiClient client;
 
 // #define SERIAL_DEBUG_RECEIVED
 //#define SERIAL_DEBUG_SCHEDULE
 // #define SERIAL_DEBUG_COMMAND
 // #define SERIAL_DEBUG_NOTECOUNTER
 // #define SERIAL_DEBUG_PCA
+#define SERIAL_DEBUG_SOCKET
+
 #define BOARD_ONE
 #define BOARD_TWO
 #define BOARD_THREE
@@ -34,6 +53,7 @@ Settings mySettings;  //create a settings object
 
 #include <Wire.h>
 #include <PCA9635.h>
+#include <ArduinoJson.h>
 
 #ifdef PCA_CONNECTED
   #ifdef BOARD_ONE  
@@ -66,13 +86,83 @@ uint8_t counter = 0;  //initialize a counter that holds the total number of note
 uint8_t oldCounter = 0;
 unsigned long commandTimer = 0;
 
+void OnNoteOn(uint8_t channel, uint8_t note, uint8_t velocity);
+void OnNoteOff(uint8_t channel, uint8_t note, uint8_t velocity);
+void OnConnected();
+void OnDisconnected();
+void volumeChange(uint8_t volume);
+
+void socketIOEvent(socketIOmessageType_t type, uint8_t * payload, size_t length) {
+    switch(type) {
+        case sIOtype_DISCONNECT:
+            OnDisconnected();
+            break;
+        case sIOtype_CONNECT:
+            OnConnected();
+            webSocket.send(sIOtype_CONNECT, "/");
+            break;
+        case sIOtype_EVENT:
+        {
+            DynamicJsonDocument doc(1024);
+            DeserializationError error = deserializeJson(doc, payload, length);
+            if(error) {
+              Serial.print(F("deserializeJson() failed: "));
+              Serial.println(error.c_str());
+              return;
+            }
+            Serial.printf("[IOc] payload %s\n", payload);
+            String eventName = doc["command"];
+            uint8_t noteNumber = doc["noteNumber"];
+            uint8_t velocity = doc["velocity"];
+            uint8_t volume = doc["volume"];
+            Serial.printf("[IOc] command: %s, noteNumber: %d, velocity: %d\n", eventName.c_str(), noteNumber, velocity);
+            
+            if (eventName == "noteOn") {
+              OnNoteOn(0, noteNumber, velocity);
+            } else if (eventName == "noteOff") {
+              OnNoteOff(0, noteNumber, velocity);
+            } else if (eventName == "volumeChange") {
+              volumeChange(volume);
+            }
+        }
+            break;
+        case sIOtype_ACK:
+            Serial.printf("[IOc] get ack: %u\n", length);
+            break;
+        case sIOtype_ERROR:
+            Serial.printf("[IOc] get error: %u\n", length);
+            break;
+        case sIOtype_BINARY_EVENT:
+            Serial.printf("[IOc] get binary: %u\n", length);
+            break;
+        case sIOtype_BINARY_ACK:
+            Serial.printf("[IOc] get binary ack: %u\n", length);
+            break;
+    }
+}
+
+void volumeChange(uint8_t volume) {
+#ifdef SERIAL_DEBUG_SOCKET
+  Serial.print("[IOc] Socket.IO VolumeChange: ");
+  Serial.println(volume);
+#endif
+  //handle volume change here
+}
+
 void OnConnected() {
+#ifdef SERIAL_DEBUG_SOCKET
+  Serial.println("[IOc] Socket.IO Connected!");
+#endif
   digitalWrite(LED_BUILTIN, HIGH);
 }
 
 void OnDisconnected() {
+#ifdef SERIAL_DEBUG_SOCKET
+  Serial.println("Socket.IO Discnected!");
+#endif
   digitalWrite(LED_BUILTIN, LOW);
 }
+
 void ScheduleOn(uint8_t id, uint8_t velocity) {
   if (mySettings.MIN_NOTE_ID <= id && id <= mySettings.MAX_NOTE_ID) {  //check to see if the note id is within range, else do nothing
     Note &note = *(find_if(begin(notes), end(notes), [&id](Note note) {
@@ -366,7 +456,29 @@ void setup() {
   Serial.println("Ready");
   //Setup I2C
   Wire.begin(21,22);
+
+  // We start by connecting to a WiFi network
+  Serial.println();
+  Serial.println();
+  Serial.print("Connecting to ");
+  Serial.println(ssid);
   
+  WiFi.begin(ssid, password);
+  
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    Serial.print(".");
+  }
+
+  Serial.println("");
+  Serial.println("WiFi connected");  
+  Serial.println("IP address: ");
+  Serial.println(WiFi.localIP());
+
+  //start websocket
+  webSocket.begin(host, port, path);
+  webSocket.onEvent(socketIOEvent);
+
   //update other misc variables:
   pinMode(LED_BUILTIN, OUTPUT);
   digitalWrite(LED_BUILTIN, LOW);
@@ -471,7 +583,7 @@ void setup() {
 }
 void loop() {
   // put your main code here, to run repeatedly:
-
+  webSocket.loop();
   counter = 0;                                              //reset the counter
   for (auto it = notes.begin(); it != notes.end(); it++) {  //iterate through the vector of notes
     //declare variables we will be using
