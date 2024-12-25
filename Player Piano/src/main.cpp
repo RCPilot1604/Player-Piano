@@ -111,12 +111,17 @@ void socketIOEvent(socketIOmessageType_t type, uint8_t * payload, size_t length)
               return;
             }
             Serial.printf("[IOc] payload %s\n", payload);
-            String eventName = doc["command"];
+            String eventName = doc[0];
             uint8_t noteNumber = doc["noteNumber"];
             uint8_t velocity = doc["velocity"];
             uint8_t volume = doc["volume"];
-            Serial.printf("[IOc] command: %s, noteNumber: %d, velocity: %d\n", eventName.c_str(), noteNumber, velocity);
-            
+#ifdef SERIAL_DEBUG_SOCKET
+            if(eventName == "noteOn" || eventName == "noteOff"){
+              Serial.printf("[IOc] command: %s, noteNumber: %d, velocity: %d\n", eventName.c_str(), noteNumber, velocity);
+            } else if(eventName == "volumeChange"){
+              Serial.printf("[IOc] command: %s, volume: %d\n", eventName.c_str(), volume);
+            }
+#endif            
             if (eventName == "noteOn") {
               OnNoteOn(0, noteNumber, velocity);
             } else if (eventName == "noteOff") {
