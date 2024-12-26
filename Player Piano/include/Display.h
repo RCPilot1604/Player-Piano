@@ -31,6 +31,7 @@ private:
   ezButton homeButton = ezButton(HOME_BUTTON);
   ezButton rightButton = ezButton(RIGHT_BUTTON);
  
+  //cleanup the code here
   int CURRENT_NOTE = mySettings.MIN_NOTE_ID; //this is the current note that will be saved to EEPROM
   int MAX_NOTE = 108; //max note check for settings page
   int MIN_NOTE = 21; //min note check for settings page
