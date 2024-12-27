@@ -110,20 +110,23 @@ void socketIOEvent(socketIOmessageType_t type, uint8_t * payload, size_t length)
               Serial.println(error.c_str());
               return;
             }
-            Serial.printf("[IOc] payload %s\n", payload);
+            //Serial.printf("[IOc] payload %s\n", payload);
             String eventName = doc[0].as<String>();
+            String commandName = doc[1]["command"].as<String>();
             uint8_t noteNumber = doc[1]["noteNumber"].as<uint8_t>();
             uint8_t velocity = doc[1]["velocity"].as<uint8_t>();
-            uint8_t volume = doc[1]["volume"].as<uint8_t>();
 #ifdef SERIAL_DEBUG_SOCKET
-            Serial.printf("[IOc] command: %s, noteNumber: %d, velocity: %d, volume: %d\n", eventName.c_str(), noteNumber, velocity, volume);
-#endif            
-            if (eventName == "noteOn") {
-              OnNoteOn(0, noteNumber, velocity);
-            } else if (eventName == "noteOff") {
-              OnNoteOff(0, noteNumber, velocity);
-            } else if (eventName == "volumeChange") {
-              volumeChange(volume);
+            Serial.printf("[IOc] event: %s, command: %s, noteNumber: %d, velocity: %d\n", eventName, commandName, noteNumber, velocity);
+#endif      
+            if(eventName == "midiEvent"){      
+              if (commandName == "Note on") {
+                OnNoteOn(0, noteNumber, velocity);
+              } else if (commandName == "Note off") {
+                OnNoteOff(0, noteNumber, velocity);
+              }
+            } else if (eventName == "volumeUpdate") {
+              Serial.print("[IOc] Volume Update: ");
+              Serial.println(doc[1].as<uint8_t>());
             }
         }
             break;
