@@ -254,8 +254,8 @@ void Display::handleEncdrClick() {
           if (placeholder1 != notes[CURRENT_NOTE-mySettings.MIN_NOTE_ID].getMinVel()) { //we only write into our NVS if the data has changed
             //write into NVS
             notes[CURRENT_NOTE-mySettings.MIN_NOTE_ID].setMinVel((uint8_t)placeholder1);
-            String noteKey = String(CURRENT_NOTE-mySettings.MIN_NOTE_ID);
-            if(mynvs.setInt("MIN_"+noteKey,placeholder2)){
+            String noteKey = "MIN_" + String(CURRENT_NOTE-mySettings.MIN_NOTE_ID);
+            if(mynvs.setInt(noteKey,placeholder2)){
               #ifdef MEMORY_DEBUG
                 Serial.print("Writing MinVel of Note "); Serial.print(notes[CURRENT_NOTE-mySettings.MIN_NOTE_ID].getMidiId()); Serial.print(" into NVS as "); Serial.println(placeholder1);
               #endif
@@ -269,8 +269,8 @@ void Display::handleEncdrClick() {
           if (placeholder2 != notes[CURRENT_NOTE-mySettings.MIN_NOTE_ID].getMaxVel()) { //we only write into our NVS if the data has changed
             //write into NVS
             notes[CURRENT_NOTE-mySettings.MIN_NOTE_ID].setMaxVel((uint8_t)placeholder2);
-            String noteKey = String(CURRENT_NOTE-mySettings.MIN_NOTE_ID);
-            if(mynvs.setInt("MAX_"+noteKey,placeholder2)){
+            String noteKey = "MAX_" + String(CURRENT_NOTE-mySettings.MIN_NOTE_ID);
+            if(mynvs.setInt(noteKey,placeholder2)){
               #ifdef MEMORY_DEBUG
                 Serial.print("Writing MaxVel of Note "); Serial.print(notes[CURRENT_NOTE-mySettings.MIN_NOTE_ID].getMidiId()); Serial.print(" into NVS as "); Serial.println(placeholder2);
               #endif
@@ -393,7 +393,7 @@ void Display::setupNVS(){
     String minKeyName = "MIN_"+String(i);
     //Serial.print("MaxKeyName: "); Serial.print(maxKeyName); Serial.print(", "); Serial.print("MinKeyName: "); Serial.println(minKeyName);
     //check if EEPROM data is initialized for the particular note
-    int maxV = mySettings.MIDI_MAX_VELOCITY; 
+    uint8_t maxV = mySettings.MIDI_MAX_VELOCITY; 
     int savedMaxV = mynvs.getInt(maxKeyName);
     if(savedMaxV == 0){ //if there is currently no value stored in the NVS for this particular key name
       if(mynvs.setInt(maxKeyName, maxV)){
