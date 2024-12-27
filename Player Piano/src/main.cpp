@@ -13,7 +13,7 @@
 
 Settings mySettings;  //create a settings object
 
-// #define SERIAL_DEBUG_RECEIVED
+ #define SERIAL_DEBUG_RECEIVED
 //#define SERIAL_DEBUG_SCHEDULE
 // #define SERIAL_DEBUG_COMMAND
 // #define SERIAL_DEBUG_NOTECOUNTER

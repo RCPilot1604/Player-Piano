@@ -55,8 +55,8 @@ private:
   uint8_t currentState = 0; 
   uint8_t currentSubstate = 0; //either 0 - not in sublevel, 1 - top row, 2 - bottom row
   uint8_t tempNote; //this variable will temporarily hold a value for note selection
-  int placeholder1; //placeholder 1 for data
-  int placeholder2; //placeholder 2 for data
+  uint8_t placeholder1; //placeholder 1 for data
+  uint8_t placeholder2; //placeholder 2 for data
 
   //misc
   unsigned long FLASH_TIMER = 0;
