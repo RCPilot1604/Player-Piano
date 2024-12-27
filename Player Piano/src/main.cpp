@@ -8,7 +8,6 @@
 #include <iterator>
 
 #include "Note.h"
-#include "Display.h"
 #include "Settings.h"
 
 Settings mySettings;  //create a settings object
@@ -56,8 +55,6 @@ Settings mySettings;  //create a settings object
 BLEMIDI_CREATE_INSTANCE("Player Piano", MIDI)
 
 std::vector<Note> notes;  //create a vector of type Note object. This stores the STATE OF INDIVIDUAL NOTES
-
-Display LCDisplay(mySettings, notes);  //create a Display object
 
 uint8_t counter = 0;  //initialize a counter that holds the total number of notes that are ON
 uint8_t oldCounter = 0;
@@ -330,13 +327,7 @@ void OnNoteOn(uint8_t channel, uint8_t note, uint8_t velocity) {
 #endif
   //when a NoteOn is detected, we want to attempt to schedule it
   //DO NOT SCHEDULE if canSendBLE is false
-  if (LCDisplay.canSendBLE) {
-    ScheduleOn(note, velocity);
-  } else {
-#ifdef SERIAL_DEBUG_SCHEDULE
-    Serial.println("canSendBLE is false, CANNOT schedule!");
-#endif
-  }
+  ScheduleOn(note, velocity);
 }
 
 void OnNoteOff(uint8_t channel, uint8_t note, uint8_t velocity) {
@@ -349,13 +340,7 @@ void OnNoteOff(uint8_t channel, uint8_t note, uint8_t velocity) {
   Serial.print(" with velocity ");
   Serial.println(velocity);
 #endif
-  if (LCDisplay.canSendBLE) {
-    ScheduleOff(note, velocity);
-  } else {
-#ifdef SERIAL_DEBUG_SCHEDULE
-    Serial.println("canSendBLE is false, CANNOT schedule!");
-#endif
-  }
+  ScheduleOff(note, velocity);
 }
 
 void setup() {
@@ -459,7 +444,6 @@ void setup() {
   //add more boards
 
 #endif
-  LCDisplay.LCDBegin();  //initialize the Display
   delay(2000);           //wait for everything to stabilize first
 
 #ifdef PCA_CONNECTED
@@ -619,9 +603,6 @@ void loop() {
     oldCounter = counter;
   }
 #endif
-
-  //display
-  LCDisplay.runProcesses();
 
   //check to see if the solenoid state has changed, and update the state accordingly
   boolean solenoidState = mySettings.getSolenoidState();
