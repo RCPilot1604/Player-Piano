@@ -8,6 +8,7 @@
 #include <vector>
 #include <iterator>
 
+#include "Passwords.h"
 #include "Note.h"
 #include "Display.h"
 #include "Settings.h"
@@ -17,9 +18,6 @@
 
 Settings mySettings;  //create a settings object
 
-/// WIFI Settings ///
-const char* ssid     = "***REMOVED***";
-const char* password = "***REMOVED***";
 /// Socket.IO Settings ///
 char host[] = "192.168.0.111"; // Socket.IO Server Address
 int port = 1234; // Socket.IO Port Address
