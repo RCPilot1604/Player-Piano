@@ -21,7 +21,7 @@ Settings mySettings;  //create a settings object
 const char* ssid     = "***REMOVED***";
 const char* password = "***REMOVED***";
 /// Socket.IO Settings ///
-char host[] = "192.168.0.226"; // Socket.IO Server Address
+char host[] = "192.168.0.111"; // Socket.IO Server Address
 int port = 1234; // Socket.IO Port Address
 char path[] = "/socket.io/?EIO=4"; // Socket.IO Base Path
 bool useSSL = false; // Use SSL Authentication
