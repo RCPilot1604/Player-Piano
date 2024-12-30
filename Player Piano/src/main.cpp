@@ -127,6 +127,40 @@ void socketIOEvent(socketIOmessageType_t type, uint8_t * payload, size_t length)
             } else if (eventName == "volumeUpdate") {
               Serial.print("[IOc] Volume Update: ");
               Serial.println(doc[1].as<uint8_t>());
+            } else if (eventName == "playUpdate" && commandName == "pause") {
+              //turn off all boards
+              #ifdef PCA_CONNECTED
+                #ifdef BOARD_ONE
+                  for (uint8_t channel = 0; channel < 16; channel++) {
+                    board_one.write1(channel, 0);
+                  }
+                #endif
+                #ifdef BOARD_TWO
+                  for (uint8_t channel = 0; channel < 16; channel++) {
+                    board_two.write1(channel, 0);
+                  }
+                #endif
+                #ifdef BOARD_THREE
+                  for (uint8_t channel = 0; channel < 16; channel++) {
+                    board_three.write1(channel, 0);
+                  }
+                #endif
+                #ifdef BOARD_FOUR
+                  for (uint8_t channel = 0; channel < 16; channel++) {
+                    board_four.write1(channel, 0);
+                  }
+                #endif
+                #ifdef BOARD_FIVE
+                  for (uint8_t channel = 0; channel < 16; channel++) {
+                    board_five.write1(channel, 0);
+                  }
+                #endif
+                #ifdef BOARD_SIX
+                  for (uint8_t channel = 0; channel < 16; channel++) {
+                    board_six.write1(channel, 0);
+                  }
+                #endif
+              #endif
             }
         }
             break;
