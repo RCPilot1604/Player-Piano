@@ -1,7 +1,6 @@
 #include <Arduino.h>
 
-#include <BLEMIDI_Transport.h>
-#include <hardware/BLEMIDI_ESP32_NimBLE.h>
+#include <BLEMidi.h>
 
 #include <algorithm>
 #include <vector>
@@ -12,8 +11,8 @@
 
 Settings mySettings;  //create a settings object
 
-// #define SERIAL_DEBUG_RECEIVED
-//#define SERIAL_DEBUG_SCHEDULE
+//  #define SERIAL_DEBUG_RECEIVED
+// #define SERIAL_DEBUG_SCHEDULE
 // #define SERIAL_DEBUG_COMMAND
 // #define SERIAL_DEBUG_NOTECOUNTER
 // #define SERIAL_DEBUG_PCA
@@ -52,8 +51,6 @@ Settings mySettings;  //create a settings object
   #endif
 #endif
 
-BLEMIDI_CREATE_INSTANCE("Player Piano", MIDI)
-
 std::vector<Note> notes;  //create a vector of type Note object. This stores the STATE OF INDIVIDUAL NOTES
 
 uint8_t counter = 0;  //initialize a counter that holds the total number of notes that are ON
@@ -61,6 +58,7 @@ uint8_t oldCounter = 0;
 unsigned long commandTimer = 0;
 
 void OnConnected() {
+  Serial.println("Connected");
   digitalWrite(LED_BUILTIN, HIGH);
 }
 
@@ -315,7 +313,7 @@ void ScheduleOff(uint8_t id, uint8_t velocity) {
 #endif
   }
 }
-void OnNoteOn(uint8_t channel, uint8_t note, uint8_t velocity) {
+void OnNoteOn(uint8_t channel, uint8_t note, uint8_t velocity, uint16_t timestamp) {
 #ifdef SERIAL_DEBUG_RECEIVED
   Serial.print(millis());
   Serial.print(" - Received ON: Note ");
@@ -330,7 +328,7 @@ void OnNoteOn(uint8_t channel, uint8_t note, uint8_t velocity) {
   ScheduleOn(note, velocity);
 }
 
-void OnNoteOff(uint8_t channel, uint8_t note, uint8_t velocity) {
+void OnNoteOff(uint8_t channel, uint8_t note, uint8_t velocity, uint16_t timestamp) {
 #ifdef SERIAL_DEBUG_RECEIVED
   Serial.print(millis());
   Serial.print(" - Received OFF: Note ");
@@ -343,6 +341,13 @@ void OnNoteOff(uint8_t channel, uint8_t note, uint8_t velocity) {
   ScheduleOff(note, velocity);
 }
 
+
+void onControlChange(uint8_t channel, uint8_t controller, uint8_t value, uint16_t timestamp){
+#ifdef SERIAL_DEBUG_RECEIVED
+  Serial.printf("Received control change : channel %d, controller %d, value %d (timestamp %dms)\n", channel, controller, value, timestamp);
+#endif
+}
+
 void setup() {
   Serial.begin(115200);
   Serial.println("Ready");
@@ -353,20 +358,13 @@ void setup() {
   pinMode(LED_BUILTIN, OUTPUT);
   digitalWrite(LED_BUILTIN, LOW);
 
-  //set the Solenoids to OFF to prevent them from going ON on power up
-  ESP_REG(0x3FF44024) = (uint32_t)0x6000000;
-  ESP_REG(0x3FF48484) = (uint32_t)0xC0000800;
-  ESP_REG(0x3FF48488) = (uint32_t)0xC0000800;
-  ESP_REG(0x3FF49024) = (uint32_t)0x2E00;
-  ESP_REG(0x3FF49028) = (uint32_t)0x2E00;
-  digitalWrite(mySettings.SOLENOID_ON_PIN, LOW);
-
-  MIDI.begin(MIDI_CHANNEL_OMNI);
-
-  BLEMIDI.setHandleConnected(OnConnected);
-  BLEMIDI.setHandleDisconnected(OnDisconnected);
-  MIDI.setHandleNoteOn(OnNoteOn);
-  MIDI.setHandleNoteOff(OnNoteOff);
+  BLEMidiServer.begin("Player Piano");
+  BLEMidiServer.setOnConnectCallback(OnConnected);
+  BLEMidiServer.setOnDisconnectCallback(OnDisconnected);
+  BLEMidiServer.setNoteOnCallback(OnNoteOn);
+  BLEMidiServer.setNoteOffCallback(OnNoteOff);
+  BLEMidiServer.setControlChangeCallback(onControlChange);
+  BLEMidiServer.enableDebugging();
 
 #ifdef PCA_CONNECTED
   #ifdef BOARD_ONE
@@ -459,7 +457,6 @@ void setup() {
 }
 void loop() {
   // put your main code here, to run repeatedly:
-  MIDI.read();
   counter = 0;                                              //reset the counter
   for (auto it = notes.begin(); it != notes.end(); it++) {  //iterate through the vector of notes
     //declare variables we will be using
