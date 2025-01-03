@@ -49,7 +49,7 @@ int Note::getOldPWM(uint8_t index){
 byte Note::getMidiId(){
   return this->midiId;
 }
-uint8_t Note::calculateVelocity(byte midiVelocity){
+uint8_t Note::calculateVelocity(uint8_t midiVelocity){
   uint8_t mappedVel = this->minVelocity + midiVelocity * (this->maxVelocity - this->minVelocity) / 127; //returns the mapped velocity according to the min and max velocity of each note object
   //Serial.print("mapped vel = "); Serial.println(mappedVel);
   //Serial.print("vol scaler = "); Serial.println(mySettings.getVolumeScaler());
