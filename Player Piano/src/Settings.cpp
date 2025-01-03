@@ -1,16 +1,10 @@
 #include "Settings.h"
 
-void Settings::setMaxDPWM(uint8_t pwm){
-  this->MAX_D_PWM = pwm;
-}
-void Settings::setMinDPWM(uint8_t pwm){
-  this->MIN_D_PWM = pwm;
-}
 uint8_t Settings::getMaxDPWM(){
-  return this->MAX_D_PWM;
+  return this->MAX_PWM;
 }
 uint8_t Settings::getMinDPWM(){
-  return this->MIN_D_PWM;
+  return this->MIN_PWM;
 }
 void Settings::setVolumeScaler(uint8_t scaler){
   this->volumeScaler=scaler;
