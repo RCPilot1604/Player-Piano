@@ -11,10 +11,10 @@
 
 Settings mySettings;  //create a settings object
 
-//  #define SERIAL_DEBUG_RECEIVED
-// #define SERIAL_DEBUG_SCHEDULE
-// #define SERIAL_DEBUG_COMMAND
-// #define SERIAL_DEBUG_NOTECOUNTER
+ #define SERIAL_DEBUG_RECEIVED
+#define SERIAL_DEBUG_SCHEDULE
+#define SERIAL_DEBUG_COMMAND
+#define SERIAL_DEBUG_NOTECOUNTER
 // #define SERIAL_DEBUG_PCA
 #define BOARD_ONE
 #define BOARD_TWO
@@ -57,6 +57,11 @@ uint8_t counter = 0;  //initialize a counter that holds the total number of note
 uint8_t oldCounter = 0;
 unsigned long commandTimer = 0;
 
+void initNotes(){
+  for(int i = mySettings.MIN_NOTE_ID; i <= mySettings.MAX_NOTE_ID; i++){
+    notes.push_back(Note(mySettings, i, mySettings.MIDI_MAX_VELOCITY, mySettings.MIDI_MIN_VELOCITY));
+  }
+}
 void OnConnected() {
   Serial.println("Connected");
   digitalWrite(LED_BUILTIN, HIGH);
@@ -353,7 +358,7 @@ void setup() {
   Serial.println("Ready");
   //Setup I2C
   Wire.begin(21,22);
-  
+  initNotes();
   //update other misc variables:
   pinMode(LED_BUILTIN, OUTPUT);
   digitalWrite(LED_BUILTIN, LOW);
