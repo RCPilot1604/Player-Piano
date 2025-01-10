@@ -11,17 +11,17 @@
 
 Settings mySettings;  //create a settings object
 
- #define SERIAL_DEBUG_RECEIVED
-#define SERIAL_DEBUG_SCHEDULE
-#define SERIAL_DEBUG_COMMAND
-#define SERIAL_DEBUG_NOTECOUNTER
+// #define SERIAL_DEBUG_RECEIVED
+// #define SERIAL_DEBUG_SCHEDULE
+// #define SERIAL_DEBUG_COMMAND
+// #define SERIAL_DEBUG_NOTECOUNTER
 // #define SERIAL_DEBUG_PCA
 #define BOARD_ONE
 #define BOARD_TWO
 #define BOARD_THREE
 #define BOARD_FOUR
 #define BOARD_FIVE
-//#define BOARD_SIX
+#define BOARD_SIX
 
 #define PCA_CONNECTED  //uncomment for code uploaded to final PCB
 
