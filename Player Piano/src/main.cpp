@@ -202,10 +202,12 @@ void ScheduleOn(uint8_t id, uint8_t velocity) {
   #ifdef SERIAL_DEBUG_SCHEDULE
               Serial.println("ON: NoteState = OFF, LastSched = OFF, act+deact command scheduled, no time for note to deactivate");
   #endif
-            } else {
+            } else { //there is sufficient time for the note to deactivate
   #ifdef SERIAL_DEBUG_SCHEDULE
               Serial.println("ON: NoteState = OFF, LastSched = OFF, act+deact command scheduled, sufficient time for note to deactivate");
   #endif
+              note.scheduleOn(velocity, TD); //schedule the note to turn on after it deactivates
+              
             }
           } else { //if the previous note is a bounceback command
             if(lastScheduledAt > TD - mySettings.BOUNCEBACK_DURATION){ //bounceback will not finish in time
@@ -213,7 +215,7 @@ void ScheduleOn(uint8_t id, uint8_t velocity) {
 #ifdef SERIAL_DEBUG_SCHEDULE
               Serial.println("ON: NoteState = OFF, LastSched = OFF, bounceback will not finish in time");
 #endif
-            } else {
+            } else { //bounceback will finish in time
 #ifdef SERIAL_DEBUG_SCHEDULE
               Serial.println("ON: NoteState = OFF, LastSched = OFF, bounceback will finish in time, schedule normally");
 #endif
@@ -221,7 +223,6 @@ void ScheduleOn(uint8_t id, uint8_t velocity) {
             }
           }
         }
-        note.scheduleOn(velocity, TD);
       }
     }
   } else {
